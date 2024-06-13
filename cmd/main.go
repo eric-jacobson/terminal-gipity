@@ -3,20 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/nsf/termbox-go"
 )
 
+const SPACE = " "
+const BACKSPACE = "\x08"
+
 func main() {
+	godotenv.Load()
+
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		log.Fatal("no OPENAI_API_KEY environment variable found")
+	}
+	log.Println(apiKey)
+
 	err := termbox.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer termbox.Close()
-
-	const SPACE = " "
-	const BACKSPACE = "\x08"
 
 	var input strings.Builder
 
