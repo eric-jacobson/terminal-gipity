@@ -20,7 +20,6 @@ func main() {
 	if apiKey == "" {
 		log.Fatal("no OPENAI_API_KEY environment variable found")
 	}
-	log.Println(apiKey)
 
 	err := termbox.Init()
 	if err != nil {
