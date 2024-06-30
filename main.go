@@ -1,21 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/nsf/termbox-go"
 )
 
-const SPACE = " "
-const BACKSPACE = "\x08"
 const OPENAI_MODEL = "gpt-3.5-turbo-0125"
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 const OPENAI_MODEL_TEMP = 0.5
@@ -30,47 +27,28 @@ func main() {
 
 	client := &http.Client{}
 
-	err := termbox.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer termbox.Close()
-
 	fmt.Printf("using %s model at %s\n", OPENAI_MODEL, OPENAI_URL)
 
-	var input strings.Builder
-
-	fmt.Print(">")
-
-main_loop:
 	for {
-		switch keyPress := termbox.PollEvent(); keyPress.Type {
-		case termbox.EventKey:
-			switch keyPress.Key {
-			case termbox.KeyEsc:
-				break main_loop
-			case termbox.KeyEnter:
-				message := strconv.Quote(input.String())
-				resp, err := postGptRequest(client, message, apiKey)
-				if err != nil {
-					log.Printf("\nError making request to OpenAI servers: %s", err.Error())
-				}
-				fmt.Printf("\n\tchat gipity: %v\n>", resp)
-				input.Reset()
-				break
-			case termbox.KeyBackspace, termbox.KeyBackspace2:
-				input.WriteString(BACKSPACE)
-				fmt.Print(BACKSPACE)
-			case termbox.KeySpace:
-				input.WriteString(SPACE)
-				fmt.Print(SPACE)
-			default:
-				if keyPress.Ch != 0 {
-					char := fmt.Sprintf("%c", keyPress.Ch)
-					input.WriteString(char)
-					fmt.Print(char)
-				}
+		fmt.Print(">")
+		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		input = strings.TrimRight(input, "\n")
+
+		switch input {
+		case "exit":
+			os.Exit(0)
+		default:
+			fmt.Println("\t\techo:", input)
+			resp, err := postGptRequest(client, input, apiKey)
+			if err != nil {
+				fmt.Println(err)
+				continue
 			}
+			fmt.Println("\t\tgipity:", resp)
 		}
 	}
 }
